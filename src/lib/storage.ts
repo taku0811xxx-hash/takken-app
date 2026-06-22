@@ -1,6 +1,5 @@
-import { doc, getDoc, setDoc, collection, addDoc, getDocs, query, orderBy } from 'firebase/firestore'
-import { db } from './firebase'
-import { auth } from './firebase'
+import { doc, getDoc, setDoc, collection, addDoc, getDocs, query, orderBy, where } from 'firebase/firestore'
+import { db, auth } from './firebase'
 import type { CheckedWords, TestResult, WeakWord } from '@/types'
 
 function getUserId(): string {
@@ -14,20 +13,83 @@ function withTimeout<T>(promise: Promise<T>, ms = 3000): Promise<T> {
   ])
 }
 
+function todayStr(): string {
+  return new Date().toISOString().split('T')[0]
+}
+
 export async function getCheckedWords(): Promise<CheckedWords> {
   const ref = doc(db, 'users', getUserId(), 'progress', 'checked')
   const snap = await withTimeout(getDoc(ref))
   return snap.exists() ? (snap.data() as CheckedWords) : {}
 }
 
-export async function saveCheckedWords(checked: CheckedWords): Promise<void> {
+export async function saveCheckedWords(checked: CheckedWords, prevChecked: CheckedWords): Promise<void> {
   const ref = doc(db, 'users', getUserId(), 'progress', 'checked')
   await setDoc(ref, checked)
+
+  // 今日チェックした数を記録
+  const newlyChecked = Object.keys(checked).filter(id => checked[id] && !prevChecked[id]).length
+  if (newlyChecked > 0) await recordDailyActivity({ wordsChecked: newlyChecked })
 }
 
 export async function saveTestResult(result: TestResult): Promise<void> {
   const ref = collection(db, 'users', getUserId(), 'testResults')
   await addDoc(ref, result)
+  await recordDailyActivity({ testAnswered: 1, testCorrect: result.correct ? 1 : 0 })
+}
+
+// 日次学習記録
+type DailyActivity = {
+  wordsChecked?: number
+  testAnswered?: number
+  testCorrect?: number
+}
+
+export async function recordDailyActivity(activity: DailyActivity): Promise<void> {
+  try {
+    const today = todayStr()
+    const ref = doc(db, 'users', getUserId(), 'dailyActivity', today)
+    const snap = await getDoc(ref)
+    const current = snap.exists() ? snap.data() : { date: today, wordsChecked: 0, testAnswered: 0, testCorrect: 0 }
+    await setDoc(ref, {
+      date: today,
+      wordsChecked: (current.wordsChecked || 0) + (activity.wordsChecked || 0),
+      testAnswered: (current.testAnswered || 0) + (activity.testAnswered || 0),
+      testCorrect: (current.testCorrect || 0) + (activity.testCorrect || 0),
+    })
+  } catch {}
+}
+
+export type DailyRecord = {
+  date: string
+  wordsChecked: number
+  testAnswered: number
+  testCorrect: number
+}
+
+export async function getDailyActivity(days = 30): Promise<DailyRecord[]> {
+  try {
+    const ref = collection(db, 'users', getUserId(), 'dailyActivity')
+    const snap = await withTimeout(getDocs(ref))
+    return snap.docs.map(d => d.data() as DailyRecord).sort((a, b) => a.date.localeCompare(b.date)).slice(-days)
+  } catch { return [] }
+}
+
+export async function getStreak(): Promise<number> {
+  try {
+    const records = await getDailyActivity(60)
+    const dateSet = new Set(records.filter(r => r.wordsChecked > 0 || r.testAnswered > 0).map(r => r.date))
+    let streak = 0
+    const today = new Date()
+    for (let i = 0; i < 60; i++) {
+      const d = new Date(today)
+      d.setDate(d.getDate() - i)
+      const str = d.toISOString().split('T')[0]
+      if (dateSet.has(str)) streak++
+      else if (i > 0) break
+    }
+    return streak
+  } catch { return 0 }
 }
 
 export async function getWeakWords(): Promise<WeakWord[]> {
