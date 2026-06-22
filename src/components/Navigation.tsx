@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useAuth } from '@/lib/AuthContext'
 import { LogOut } from 'lucide-react'
 
@@ -17,14 +17,24 @@ export default function Navigation() {
   const pathname = usePathname()
   const router = useRouter()
   const { user, loading, signOutUser } = useAuth()
+  const [redirecting, setRedirecting] = useState(false)
 
   useEffect(() => {
-    if (!loading && !user && pathname !== '/login') {
-      router.push('/login')
+    // loadingが完全に終わってから判断・少し待ってリダイレクト
+    if (loading) return
+    if (!user && pathname !== '/login' && !redirecting) {
+      setRedirecting(true)
+      setTimeout(() => {
+        router.push('/login')
+      }, 100)
     }
-  }, [user, loading, pathname, router])
+    if (user && redirecting) {
+      setRedirecting(false)
+    }
+  }, [user, loading, pathname, router, redirecting])
 
   if (pathname === '/login') return null
+  if (loading || (!user && pathname !== '/login')) return null
 
   const isActive = (href: string) => {
     if (href === '/') return pathname === '/'
@@ -50,7 +60,7 @@ export default function Navigation() {
           ))}
           {user && (
             <div className="flex items-center gap-2 ml-4 pl-4 border-l border-gray-100">
-              <img src={user.photoURL ?? ''} alt="" className="w-7 h-7 rounded-full" />
+              {user.photoURL && <img src={user.photoURL} alt="" className="w-7 h-7 rounded-full" />}
               <button
                 onClick={signOutUser}
                 className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-all"
