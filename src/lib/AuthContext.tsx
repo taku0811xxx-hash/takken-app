@@ -28,22 +28,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // リダイレクト後の結果を処理
-    getRedirectResult(auth).catch(() => {})
+    // まずリダイレクト結果を処理してからauth状態を監視する
+    const init = async () => {
+      try {
+        const result = await getRedirectResult(auth)
+        // リダイレクト結果があればそのユーザーをセット
+        if (result?.user) {
+          setUser(result.user)
+          setLoading(false)
+          return
+        }
+      } catch (e) {
+        // リダイレクト結果がない場合は無視
+      }
 
-    const unsubscribe = onAuthStateChanged(auth, u => {
-      setUser(u)
-      setLoading(false)
+      // 通常のauth状態監視
+      const unsubscribe = onAuthStateChanged(auth, u => {
+        setUser(u)
+        setLoading(false)
+      })
+      return unsubscribe
+    }
+
+    let unsubscribe: (() => void) | undefined
+    init().then(unsub => {
+      unsubscribe = unsub
     })
-    return unsubscribe
+
+    return () => {
+      if (unsubscribe) unsubscribe()
+    }
   }, [])
 
   const signInWithGoogle = async () => {
     if (isMobile()) {
-      // スマホはリダイレクト方式
       await signInWithRedirect(auth, googleProvider)
     } else {
-      // PCはポップアップ方式
       await signInWithPopup(auth, googleProvider)
     }
   }
