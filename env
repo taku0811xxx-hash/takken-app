@@ -1,0 +1,17 @@
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyCXvGDKZWSI4yMgI3Hp7SkjVvs-N_b95zw",
+  authDomain: "takken-app-ddcfa.firebaseapp.com",
+  projectId: "takken-app-ddcfa",
+  storageBucket: "takken-app-ddcfa.firebasestorage.app",
+  messagingSenderId: "959138410328",
+  appId: "1:959138410328:web:74c60d97d2d06e6e763f2d"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
