@@ -24,7 +24,6 @@ function WordsContent() {
   const [activeCategory, setActiveCategory] = useState(categoryParam)
   const [activeTab, setActiveTab] = useState<Tab>('all')
   const [loading, setLoading] = useState(true)
-
   const words = wordData.words
 
   useEffect(() => {
@@ -59,7 +58,7 @@ function WordsContent() {
   }
 
   return (
-    <div className="max-w-lg mx-auto px-4 pb-24">
+    <div className="max-w-lg mx-auto px-4 pb-24 md:pb-8">
       <div className="pt-8 pb-4">
         <h1 className="text-2xl font-bold text-gray-800">単語帳</h1>
       </div>
@@ -133,21 +132,6 @@ function WordsContent() {
           ))
         )}
       </div>
-
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 flex">
-        <a href="/" className="flex-1 flex flex-col items-center gap-1 py-3 text-gray-400">
-          <span className="text-lg">🏠</span><span className="text-xs">ホーム</span>
-        </a>
-        <a href="/words" className="flex-1 flex flex-col items-center gap-1 py-3 text-gray-800">
-          <span className="text-lg">📖</span><span className="text-xs font-medium">単語帳</span>
-        </a>
-        <a href="/test" className="flex-1 flex flex-col items-center gap-1 py-3 text-gray-400">
-          <span className="text-lg">🧠</span><span className="text-xs">テスト</span>
-        </a>
-        <a href="/progress" className="flex-1 flex flex-col items-center gap-1 py-3 text-gray-400">
-          <span className="text-lg">📊</span><span className="text-xs">進捗</span>
-        </a>
-      </nav>
     </div>
   )
 }

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { BookOpen, Brain, CheckSquare, ChevronRight } from 'lucide-react'
+import { Brain, ChevronRight } from 'lucide-react'
 import wordData from '@/data/words.json'
 import questionsData from '@/data/questions.json'
 import { getWeakWords, saveTestResult } from '@/lib/storage'
@@ -13,7 +13,7 @@ type Question = {
   explanation: string
 }
 
-type Phase = 'select' | 'answering' | 'done'
+type Phase = 'select' | 'answering'
 
 export default function TestPage() {
   const [phase, setPhase] = useState<Phase>('select')
@@ -66,7 +66,7 @@ export default function TestPage() {
   const availableCount = words.filter(w => questions[w.id]?.length > 0).length
 
   return (
-    <div className="max-w-lg mx-auto px-4 pb-24">
+    <div className="max-w-lg mx-auto px-4 pb-24 md:pb-8">
       <div className="pt-8 pb-4">
         <h1 className="text-2xl font-bold text-gray-800">テスト</h1>
         <p className="text-sm text-gray-400 mt-1">
@@ -97,7 +97,6 @@ export default function TestPage() {
               </button>
             </div>
           </div>
-
           <button
             onClick={startQuestion}
             className="w-full bg-gray-800 text-white py-4 rounded-2xl font-medium text-base flex items-center justify-center gap-2"
@@ -114,7 +113,6 @@ export default function TestPage() {
             <p className="text-xs text-gray-400 mb-2">{currentWord.subcategory} / 難易度{'★'.repeat(currentWord.difficulty)}</p>
             <p className="text-base font-medium text-gray-800 leading-relaxed">{question.question}</p>
           </div>
-
           <div className="space-y-2">
             {question.options.map((opt, idx) => {
               let style = 'bg-white border-gray-100 text-gray-700'
@@ -135,7 +133,6 @@ export default function TestPage() {
               )
             })}
           </div>
-
           {selected !== null && (
             <div className="bg-amber-50 rounded-2xl p-4 border border-amber-100">
               <p className="text-xs font-semibold text-amber-700 mb-1">
@@ -144,7 +141,6 @@ export default function TestPage() {
               <p className="text-sm text-amber-800 leading-relaxed">{question.explanation}</p>
             </div>
           )}
-
           {selected !== null && (
             <button
               onClick={startQuestion}
@@ -155,21 +151,6 @@ export default function TestPage() {
           )}
         </div>
       )}
-
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 flex">
-        <a href="/" className="flex-1 flex flex-col items-center gap-1 py-3 text-gray-400">
-          <span className="text-lg">🏠</span><span className="text-xs">ホーム</span>
-        </a>
-        <a href="/words" className="flex-1 flex flex-col items-center gap-1 py-3 text-gray-400">
-          <span className="text-lg">📖</span><span className="text-xs">単語帳</span>
-        </a>
-        <a href="/test" className="flex-1 flex flex-col items-center gap-1 py-3 text-gray-800">
-          <span className="text-lg">🧠</span><span className="text-xs font-medium">テスト</span>
-        </a>
-        <a href="/progress" className="flex-1 flex flex-col items-center gap-1 py-3 text-gray-400">
-          <span className="text-lg">📊</span><span className="text-xs">進捗</span>
-        </a>
-      </nav>
     </div>
   )
 }

@@ -1,16 +1,17 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
+import Link from 'next/link'
 import { Settings } from 'lucide-react'
 import wordData from '@/data/words.json'
 import { getCheckedWords, getExamDate } from '@/lib/storage'
 import type { CheckedWords } from '@/types'
 
 const CATEGORIES = [
-  { prefix: 'k', label: '権利関係', emoji: '⚖️', color: 'bg-blue-50 border-blue-100', accent: 'text-blue-600' },
-  { prefix: 't', label: '宅建業法', emoji: '🏢', color: 'bg-green-50 border-green-100', accent: 'text-green-600' },
-  { prefix: 'h', label: '法令上の制限', emoji: '📋', color: 'bg-orange-50 border-orange-100', accent: 'text-orange-600' },
-  { prefix: 'z', label: '税・その他', emoji: '💴', color: 'bg-purple-50 border-purple-100', accent: 'text-purple-600' },
+  { prefix: 'k', label: '権利関係', emoji: '⚖️', color: 'bg-blue-50 border-blue-100', barColor: '#3b82f6' },
+  { prefix: 't', label: '宅建業法', emoji: '🏢', color: 'bg-green-50 border-green-100', barColor: '#22c55e' },
+  { prefix: 'h', label: '法令上の制限', emoji: '📋', color: 'bg-orange-50 border-orange-100', barColor: '#f97316' },
+  { prefix: 'z', label: '税・その他', emoji: '💴', color: 'bg-purple-50 border-purple-100', barColor: '#a855f7' },
 ]
 
 function calcDaysLeft(dateStr: string): number {
@@ -57,13 +58,12 @@ export default function Home() {
   }
 
   return (
-    <div className="max-w-lg mx-auto px-4 pb-24">
-      {/* ヘッダー */}
+    <div className="max-w-lg mx-auto px-4 pb-24 md:pb-8">
       <div className="flex items-center justify-between pt-8 pb-5">
         <h1 className="text-2xl font-bold text-gray-800">宅建単語帳</h1>
-        <a href="/settings" className="p-2 rounded-full bg-white border border-gray-100 text-gray-400">
+        <Link href="/settings" className="p-2 rounded-full bg-white border border-gray-100 text-gray-400">
           <Settings size={20} />
-        </a>
+        </Link>
       </div>
 
       {/* カウントダウン */}
@@ -95,7 +95,7 @@ export default function Home() {
       <p className="text-xs font-semibold text-gray-400 mb-3">教科を選んで学習する</p>
       <div className="grid grid-cols-2 gap-3 mb-4">
         {categoryStats.map(cat => (
-          <a
+          <Link
             key={cat.prefix}
             href={`/words?category=${cat.prefix}`}
             className={`${cat.color} border rounded-2xl p-4 block active:opacity-80 transition-opacity`}
@@ -106,41 +106,23 @@ export default function Home() {
             <div className="bg-white bg-opacity-60 rounded-full h-1.5 mb-1">
               <div
                 className="h-1.5 rounded-full transition-all duration-500"
-                style={{
-                  width: `${cat.progress}%`,
-                  backgroundColor: cat.prefix === 'k' ? '#3b82f6' : cat.prefix === 't' ? '#22c55e' : cat.prefix === 'h' ? '#f97316' : '#a855f7'
-                }}
+                style={{ width: `${cat.progress}%`, backgroundColor: cat.barColor }}
               />
             </div>
-            <p className={`text-xs font-medium ${cat.accent}`}>{cat.progress}% 完了</p>
-          </a>
+            <p className="text-xs font-medium text-gray-600">{cat.progress}% 完了</p>
+          </Link>
         ))}
       </div>
 
       {/* テストボタン */}
-      <a href="/test" className="bg-gray-800 text-white rounded-2xl p-4 flex items-center gap-3 active:opacity-80">
+      <Link href="/test" className="bg-gray-800 text-white rounded-2xl p-4 flex items-center gap-3 active:opacity-80">
         <span className="text-2xl">🧠</span>
         <div>
           <p className="text-sm font-semibold">テストする</p>
           <p className="text-xs text-gray-400 mt-0.5">苦手単語を中心に出題</p>
         </div>
         <span className="ml-auto text-gray-400">›</span>
-      </a>
-
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 flex">
-        <a href="/" className="flex-1 flex flex-col items-center gap-1 py-3 text-gray-800">
-          <span className="text-lg">🏠</span><span className="text-xs font-medium">ホーム</span>
-        </a>
-        <a href="/words" className="flex-1 flex flex-col items-center gap-1 py-3 text-gray-400">
-          <span className="text-lg">📖</span><span className="text-xs">単語帳</span>
-        </a>
-        <a href="/test" className="flex-1 flex flex-col items-center gap-1 py-3 text-gray-400">
-          <span className="text-lg">🧠</span><span className="text-xs">テスト</span>
-        </a>
-        <a href="/progress" className="flex-1 flex flex-col items-center gap-1 py-3 text-gray-400">
-          <span className="text-lg">📊</span><span className="text-xs">進捗</span>
-        </a>
-      </nav>
+      </Link>
     </div>
   )
 }
