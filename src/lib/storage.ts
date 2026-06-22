@@ -1,8 +1,11 @@
 import { doc, getDoc, setDoc, collection, addDoc, getDocs, query, orderBy } from 'firebase/firestore'
 import { db } from './firebase'
+import { auth } from './firebase'
 import type { CheckedWords, TestResult, WeakWord } from '@/types'
 
-const USER_ID = 'mom'
+function getUserId(): string {
+  return auth.currentUser?.uid ?? 'anonymous'
+}
 
 function withTimeout<T>(promise: Promise<T>, ms = 3000): Promise<T> {
   return Promise.race([
@@ -12,23 +15,23 @@ function withTimeout<T>(promise: Promise<T>, ms = 3000): Promise<T> {
 }
 
 export async function getCheckedWords(): Promise<CheckedWords> {
-  const ref = doc(db, 'users', USER_ID, 'progress', 'checked')
+  const ref = doc(db, 'users', getUserId(), 'progress', 'checked')
   const snap = await withTimeout(getDoc(ref))
   return snap.exists() ? (snap.data() as CheckedWords) : {}
 }
 
 export async function saveCheckedWords(checked: CheckedWords): Promise<void> {
-  const ref = doc(db, 'users', USER_ID, 'progress', 'checked')
+  const ref = doc(db, 'users', getUserId(), 'progress', 'checked')
   await setDoc(ref, checked)
 }
 
 export async function saveTestResult(result: TestResult): Promise<void> {
-  const ref = collection(db, 'users', USER_ID, 'testResults')
+  const ref = collection(db, 'users', getUserId(), 'testResults')
   await addDoc(ref, result)
 }
 
 export async function getWeakWords(): Promise<WeakWord[]> {
-  const ref = collection(db, 'users', USER_ID, 'testResults')
+  const ref = collection(db, 'users', getUserId(), 'testResults')
   const q = query(ref, orderBy('timestamp', 'desc'))
   const snap = await withTimeout(getDocs(q))
   const results: TestResult[] = snap.docs.map(d => d.data() as TestResult)
@@ -57,7 +60,7 @@ function getDefaultExamDate(): string {
 export async function getExamDate(): Promise<string> {
   const defaultDate = getDefaultExamDate()
   try {
-    const ref = doc(db, 'users', USER_ID, 'settings', 'exam')
+    const ref = doc(db, 'users', getUserId(), 'settings', 'exam')
     const snap = await withTimeout(getDoc(ref))
     return snap.exists() ? snap.data().date : defaultDate
   } catch {
@@ -67,7 +70,7 @@ export async function getExamDate(): Promise<string> {
 
 export async function saveExamDate(date: string): Promise<void> {
   try {
-    const ref = doc(db, 'users', USER_ID, 'settings', 'exam')
+    const ref = doc(db, 'users', getUserId(), 'settings', 'exam')
     await setDoc(ref, { date })
   } catch {
     localStorage.setItem('examDate', date)

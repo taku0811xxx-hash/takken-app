@@ -1,7 +1,10 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
+import { useEffect } from 'react'
+import { useAuth } from '@/lib/AuthContext'
+import { LogOut } from 'lucide-react'
 
 const NAV_ITEMS = [
   { href: '/', label: 'ホーム', emoji: '🏠' },
@@ -12,6 +15,16 @@ const NAV_ITEMS = [
 
 export default function Navigation() {
   const pathname = usePathname()
+  const router = useRouter()
+  const { user, loading, signOutUser } = useAuth()
+
+  useEffect(() => {
+    if (!loading && !user && pathname !== '/login') {
+      router.push('/login')
+    }
+  }, [user, loading, pathname, router])
+
+  if (pathname === '/login') return null
 
   const isActive = (href: string) => {
     if (href === '/') return pathname === '/'
@@ -29,14 +42,23 @@ export default function Navigation() {
               key={item.href}
               href={item.href}
               className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-                isActive(item.href)
-                  ? 'bg-gray-800 text-white'
-                  : 'text-gray-500 hover:bg-gray-100'
+                isActive(item.href) ? 'bg-gray-800 text-white' : 'text-gray-500 hover:bg-gray-100'
               }`}
             >
               {item.label}
             </Link>
           ))}
+          {user && (
+            <div className="flex items-center gap-2 ml-4 pl-4 border-l border-gray-100">
+              <img src={user.photoURL ?? ''} alt="" className="w-7 h-7 rounded-full" />
+              <button
+                onClick={signOutUser}
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-all"
+              >
+                <LogOut size={16} />
+              </button>
+            </div>
+          )}
         </nav>
       </header>
 
