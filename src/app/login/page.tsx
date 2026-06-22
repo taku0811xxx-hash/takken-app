@@ -15,6 +15,11 @@ function isMobile(): boolean {
   return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
 }
 
+function isIOS(): boolean {
+  if (typeof window === 'undefined') return false
+  return /iPhone|iPad|iPod/.test(navigator.userAgent)
+}
+
 export default function LoginPage() {
   const { user, loading, signInWithGoogle } = useAuth()
   const router = useRouter()
@@ -37,7 +42,7 @@ export default function LoginPage() {
       await signInWithGoogle()
     } catch (e: any) {
       if (e?.code !== 'auth/popup-closed-by-user') {
-        setError('ログインに失敗しました。Safariなど標準ブラウザで開き直してください。')
+        setError('ログインに失敗しました。もう一度お試しください。')
       }
     } finally {
       setSigningIn(false)
@@ -45,7 +50,14 @@ export default function LoginPage() {
   }
 
   const openInSafari = () => {
-    window.location.href = window.location.href
+    const url = window.location.href
+    if (isIOS()) {
+      // iOSでSafariを直接開く
+      window.location.href = `safari-https://${url.replace('https://', '')}`
+    } else {
+      // AndroidはChromeのIntentスキーム
+      window.location.href = `intent://${url.replace(/^https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;end`
+    }
   }
 
   if (loading) {
@@ -66,31 +78,31 @@ export default function LoginPage() {
         </div>
 
         {inAppBrowser ? (
-          /* アプリ内ブラウザの場合 */
-          <div className="space-y-4">
+          <div className="space-y-3">
             <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4 text-center">
-              <p className="text-sm font-medium text-amber-800 mb-1">⚠️ ブラウザを変更してください</p>
+              <p className="text-sm font-medium text-amber-800 mb-1">⚠️ Safariで開いてください</p>
               <p className="text-xs text-amber-600 leading-relaxed">
-                LINEやInstagramなどのアプリ内ブラウザではGoogleログインができません。
-                SafariまたはChromeで開き直してください。
+                このブラウザではGoogleログインができません。
+                下のボタンからSafariで開いてください。
               </p>
             </div>
-            <div className="bg-white border border-gray-200 rounded-2xl p-4">
-              <p className="text-xs font-medium text-gray-600 mb-2">開き方</p>
-              <div className="space-y-2 text-xs text-gray-500">
-                <p>1. 画面右下または右上の <span className="font-medium">「...」「⋮」</span> をタップ</p>
-                <p>2. <span className="font-medium">「Safariで開く」「ブラウザで開く」</span>を選択</p>
-              </div>
-            </div>
+
             <button
-              onClick={() => window.open(window.location.href, '_blank')}
+              onClick={openInSafari}
               className="w-full bg-gray-800 text-white py-4 rounded-2xl text-sm font-medium"
             >
-              Safariで開く
+              🧭 Safariで開く
             </button>
+
+            <div className="bg-white border border-gray-100 rounded-2xl p-4">
+              <p className="text-xs font-medium text-gray-600 mb-2">ボタンが動かない場合</p>
+              <div className="space-y-1.5 text-xs text-gray-500">
+                <p>1. 画面下部の <span className="font-medium">「...」</span> をタップ</p>
+                <p>2. <span className="font-medium">「ブラウザで開く」「Safariで開く」</span> を選択</p>
+              </div>
+            </div>
           </div>
         ) : (
-          /* 通常ブラウザの場合 */
           <>
             <button
               onClick={handleSignIn}
@@ -113,12 +125,6 @@ export default function LoginPage() {
             <p className="text-xs text-gray-400 text-center mt-6 leading-relaxed">
               ログインすることで学習データがクラウドに保存され<br />どのデバイスからでもアクセスできます
             </p>
-
-            {isMobile() && (
-              <p className="text-xs text-gray-300 text-center mt-3">
-                ※ Safariまたは標準ブラウザでご利用ください
-              </p>
-            )}
           </>
         )}
       </div>
