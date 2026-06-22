@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext, useContext, useEffect, useState } from 'react'
-import { User, onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth'
+import { User, onAuthStateChanged, signInWithPopup, signInWithRedirect, getRedirectResult, signOut } from 'firebase/auth'
 import { auth, googleProvider } from '@/lib/firebase'
 
 type AuthContextType = {
@@ -18,11 +18,19 @@ const AuthContext = createContext<AuthContextType>({
   signOutUser: async () => {},
 })
 
+function isMobile(): boolean {
+  if (typeof window === 'undefined') return false
+  return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    // リダイレクト後の結果を処理
+    getRedirectResult(auth).catch(() => {})
+
     const unsubscribe = onAuthStateChanged(auth, u => {
       setUser(u)
       setLoading(false)
@@ -31,7 +39,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const signInWithGoogle = async () => {
-    await signInWithPopup(auth, googleProvider)
+    if (isMobile()) {
+      // スマホはリダイレクト方式
+      await signInWithRedirect(auth, googleProvider)
+    } else {
+      // PCはポップアップ方式
+      await signInWithPopup(auth, googleProvider)
+    }
   }
 
   const signOutUser = async () => {

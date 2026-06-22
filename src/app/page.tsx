@@ -97,7 +97,7 @@ export default function Home() {
         {categoryStats.map(cat => (
           <Link
             key={cat.prefix}
-            href={`/words?category=${cat.prefix}`}
+            href={`/subject/${cat.prefix}`}
             className={`${cat.color} border rounded-2xl p-4 block active:opacity-80 transition-opacity`}
           >
             <p className="text-2xl mb-2">{cat.emoji}</p>
