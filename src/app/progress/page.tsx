@@ -80,16 +80,16 @@ export default function ProgressPage() {
 
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 flex">
         <a href="/" className="flex-1 flex flex-col items-center gap-1 py-3 text-gray-400">
-          <BookOpen size={20} />
-          <span className="text-xs">単語帳</span>
+          <span className="text-lg">🏠</span><span className="text-xs">ホーム</span>
+        </a>
+        <a href="/words" className="flex-1 flex flex-col items-center gap-1 py-3 text-gray-400">
+          <span className="text-lg">📖</span><span className="text-xs">単語帳</span>
         </a>
         <a href="/test" className="flex-1 flex flex-col items-center gap-1 py-3 text-gray-400">
-          <Brain size={20} />
-          <span className="text-xs">テスト</span>
+          <span className="text-lg">🧠</span><span className="text-xs">テスト</span>
         </a>
         <a href="/progress" className="flex-1 flex flex-col items-center gap-1 py-3 text-gray-800">
-          <CheckSquare size={20} />
-          <span className="text-xs font-medium">進捗</span>
+          <span className="text-lg">📊</span><span className="text-xs font-medium">進捗</span>
         </a>
       </nav>
     </div>
