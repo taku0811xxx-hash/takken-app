@@ -10,22 +10,13 @@ function isInAppBrowser(): boolean {
   return /FBAN|FBAV|Instagram|Line|Twitter|Snapchat|WeChat|MicroMessenger/.test(ua)
 }
 
-function isMobile(): boolean {
-  if (typeof window === 'undefined') return false
-  return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
-}
-
-function isIOS(): boolean {
-  if (typeof window === 'undefined') return false
-  return /iPhone|iPad|iPod/.test(navigator.userAgent)
-}
-
 export default function LoginPage() {
   const { user, loading, signInWithGoogle } = useAuth()
   const router = useRouter()
   const [signingIn, setSigningIn] = useState(false)
   const [error, setError] = useState('')
   const [inAppBrowser, setInAppBrowser] = useState(false)
+  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     setInAppBrowser(isInAppBrowser())
@@ -49,14 +40,21 @@ export default function LoginPage() {
     }
   }
 
-  const openInSafari = () => {
-    const url = window.location.href
-    if (isIOS()) {
-      // iOSでSafariを直接開く
-      window.location.href = `safari-https://${url.replace('https://', '')}`
-    } else {
-      // AndroidはChromeのIntentスキーム
-      window.location.href = `intent://${url.replace(/^https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;end`
+  const copyUrl = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 3000)
+    } catch {
+      // clipboard APIが使えない場合
+      const el = document.createElement('textarea')
+      el.value = window.location.href
+      document.body.appendChild(el)
+      el.select()
+      document.execCommand('copy')
+      document.body.removeChild(el)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 3000)
     }
   }
 
@@ -82,24 +80,35 @@ export default function LoginPage() {
             <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4 text-center">
               <p className="text-sm font-medium text-amber-800 mb-1">⚠️ Safariで開いてください</p>
               <p className="text-xs text-amber-600 leading-relaxed">
-                このブラウザではGoogleログインができません。
-                下のボタンからSafariで開いてください。
+                LINEなどのアプリ内ブラウザではGoogleログインができません。
               </p>
             </div>
 
             <button
-              onClick={openInSafari}
-              className="w-full bg-gray-800 text-white py-4 rounded-2xl text-sm font-medium"
+              onClick={copyUrl}
+              className={`w-full py-4 rounded-2xl text-sm font-medium flex items-center justify-center gap-2 transition-all ${
+                copied ? 'bg-green-500 text-white' : 'bg-gray-800 text-white'
+              }`}
             >
-              🧭 Safariで開く
+              {copied ? '✅ コピーしました！' : '🔗 URLをコピー'}
             </button>
 
-            <div className="bg-white border border-gray-100 rounded-2xl p-4">
-              <p className="text-xs font-medium text-gray-600 mb-2">ボタンが動かない場合</p>
-              <div className="space-y-1.5 text-xs text-gray-500">
-                <p>1. 画面下部の <span className="font-medium">「...」</span> をタップ</p>
-                <p>2. <span className="font-medium">「ブラウザで開く」「Safariで開く」</span> を選択</p>
+            {copied && (
+              <div className="bg-green-50 border border-green-100 rounded-2xl p-3">
+                <p className="text-xs text-green-700 font-medium mb-1">次の手順でSafariで開いてください</p>
+                <div className="space-y-1 text-xs text-green-600">
+                  <p>1. ホーム画面から <span className="font-bold">Safari</span> を起動</p>
+                  <p>2. アドレスバーを長押し → <span className="font-bold">ペースト</span></p>
+                  <p>3. <span className="font-bold">移動</span> をタップ</p>
+                </div>
               </div>
+            )}
+
+            <div className="bg-white border border-gray-100 rounded-2xl p-4">
+              <p className="text-xs text-gray-500 leading-relaxed text-center">
+                または画面右下の <span className="font-medium">「...」</span> →<br />
+                <span className="font-medium">「ブラウザで開く」</span> を選択
+              </p>
             </div>
           </div>
         ) : (
